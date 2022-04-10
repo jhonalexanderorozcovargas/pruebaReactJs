@@ -4,6 +4,7 @@ import {  useState } from 'react';
 import { size } from 'lodash';
 import Pagination from './components/Pagination';
 import * as utils from './utils/constants';
+import Loading from './components/Loading';
 
 function App() {
   const [productos, setProductos] = useState([])
@@ -12,28 +13,27 @@ function App() {
   const [data, setData] = useState(false);
   const [actualPagina, setActualPagina] = useState(0);
   const [search, setSearch] = useState("");
-
-
+  const [loading,setLoading] = useState(false)
+  const [cantidadRegistros, setCantidadRegistros] = useState(5);
 
   const filtrarArticulos = () => {
     if(search.length === 0) {
-      return productos.slice(actualPagina,actualPagina + 5);
+      return productos.slice(actualPagina, actualPagina + cantidadRegistros);
     }else{
-      const filtrados = productos.filter(articulo => articulo.title.includes(search));
-      console.log(filtrados)
-      return filtrados.slice(actualPagina,actualPagina + 5);
+      const filtrados = productos.filter(articulo => articulo.title.toLowerCase().includes(search.toLowerCase()));
+      return filtrados.slice(actualPagina,actualPagina + cantidadRegistros);
     }
     
   }
 
   const anteriorPagina = () => {
     if(actualPagina>0){
-      setActualPagina(actualPagina - 5);
+      setActualPagina(actualPagina - cantidadRegistros);
     }
   }
 
   const siguientePagina = () => {
-    setActualPagina(actualPagina + 5);
+    setActualPagina(actualPagina + cantidadRegistros);
   }
 
   const onSearchChange = (e) => {
@@ -43,6 +43,7 @@ function App() {
 
   const buscarProducto = async () => {
     if(producto!==""){
+      setLoading(true);
       await fetch(utils.baseUrl+utils.search+producto)
       .then((res) => res.json())
       .then((result) => {
@@ -50,6 +51,7 @@ function App() {
         setProductos(result.data)
       });
       setBusqueda(true);
+      setLoading(false);
     }
   }
 
@@ -78,13 +80,27 @@ function App() {
                   value={search}
                   onChange={onSearchChange}
                 />
-                <button className='btn btn-primary' onClick={() => anteriorPagina()}>Anterior</button>
+                
+                  <button onClick={() => anteriorPagina()}>
+                  <i className="fa-solid fa-angle-left" ></i>
+                  </button>
                 &nbsp;
-                <button className='btn btn-primary' onClick={() => siguientePagina()}>Siguiente</button>
+                <button onClick={() => siguientePagina()}>
+                  <i className="fa-solid fa-angle-right" ></i>
+                  </button>
                 &nbsp;
-              <Pagination data={filtrarArticulos()}/> 
+              <Pagination data={filtrarArticulos()}/>
+              <button className='btn btn-primary' onClick={() => setCantidadRegistros(5)}>5</button>
+                &nbsp;
+              <button className='btn btn-primary' onClick={() => setCantidadRegistros(10)}>10</button>
+                &nbsp;
+                <button className='btn btn-primary' onClick={() => setCantidadRegistros(20)}>20...</button>
+                &nbsp;
             </div>
           )
+          }
+          {
+            loading && <Loading/>
           }
         </div>
         <div className='col-2'>
